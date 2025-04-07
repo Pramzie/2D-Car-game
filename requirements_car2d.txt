@@ -1,0 +1,14 @@
+# Java version
+JDK >= 8
+
+# Required packages (all are part of standard Java)
+javax.swing
+java.awt
+java.awt.event
+java.util.Random
+
+# Compile
+javac CarRacingGame.java
+
+# Run
+java CarRacingGame
