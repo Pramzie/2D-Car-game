@@ -1,114 +1,141 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.util.Random;
 
 public class CarRacingGame extends JPanel implements ActionListener, KeyListener {
-    private int carX = 220, carY = 500;  // Car position
-    private int obstacleX, obstacleY = -100, obstacleSpeed = 5;
+
+    // Constants
+    private static final int PANEL_WIDTH = 500;
+    private static final int PANEL_HEIGHT = 600;
+    private static final int ROAD_X = 100;
+    private static final int ROAD_WIDTH = 300;
+    private static final int CAR_WIDTH = 50;
+    private static final int CAR_HEIGHT = 80;
+    private static final int OBSTACLE_WIDTH = 50;
+    private static final int OBSTACLE_HEIGHT = 80;
+    private static final int OBSTACLE_SPEED = 5;
+    private static final int MOVE_STEP = 20;
+
+    private Rectangle car;
+    private Rectangle obstacle;
+
     private int score = 0;
     private boolean gameOver = false;
     private Timer timer;
     private Random random = new Random();
 
     public CarRacingGame() {
-        setPreferredSize(new Dimension(500, 600));
+        setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
         setBackground(Color.GRAY);
-        addKeyListener(this);
         setFocusable(true);
-        setFocusTraversalKeysEnabled(false);
+        addKeyListener(this);
 
-        obstacleX = random.nextInt(350);  // Random obstacle position
-        timer = new Timer(30, this);  // Game loop
+        car = new Rectangle(ROAD_X + ROAD_WIDTH / 2 - CAR_WIDTH / 2, PANEL_HEIGHT - CAR_HEIGHT - 20, CAR_WIDTH, CAR_HEIGHT);
+        resetObstacle();
+
+        timer = new Timer(30, this);
         timer.start();
     }
 
+    private void resetObstacle() {
+        int x = ROAD_X + random.nextInt(ROAD_WIDTH - OBSTACLE_WIDTH);
+        obstacle = new Rectangle(x, -OBSTACLE_HEIGHT, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
+    }
+
     @Override
-    public void paintComponent(Graphics g) {
+    protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
 
         // Draw road
         g2d.setColor(Color.DARK_GRAY);
-        g2d.fillRect(100, 0, 300, 600);
+        g2d.fillRect(ROAD_X, 0, ROAD_WIDTH, PANEL_HEIGHT);
 
-        // Draw lane dividers
+        // Lane dividers
         g2d.setColor(Color.WHITE);
-        for (int i = 0; i < 600; i += 50) {
-            g2d.fillRect(240, i, 10, 30);
+        for (int i = 0; i < PANEL_HEIGHT; i += 50) {
+            g2d.fillRect(ROAD_X + ROAD_WIDTH / 2 - 5, i, 10, 30);
         }
 
-        // Draw the car
+        // Draw car
         g2d.setColor(Color.RED);
-        g2d.fillRect(carX, carY, 50, 80);
+        g2d.fillRect(car.x, car.y, car.width, car.height);
 
-        // Draw obstacles
+        // Draw obstacle
         g2d.setColor(Color.BLACK);
-        g2d.fillRect(obstacleX, obstacleY, 50, 80);
+        g2d.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
 
         // Draw score
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 20));
         g2d.drawString("Score: " + score, 10, 30);
 
-        // Game Over message
         if (gameOver) {
             g2d.setColor(Color.RED);
             g2d.setFont(new Font("Arial", Font.BOLD, 40));
-            g2d.drawString("GAME OVER", 150, 300);
+            g2d.drawString("GAME OVER", 130, 300);
+            g2d.setFont(new Font("Arial", Font.PLAIN, 20));
+            g2d.drawString("Press ENTER to Restart", 150, 350);
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!gameOver) {
-            // Move the obstacle down
-            obstacleY += obstacleSpeed;
+            obstacle.y += OBSTACLE_SPEED;
 
-            // Reset obstacle if it goes off-screen
-            if (obstacleY > 600) {
-                obstacleY = -100;
-                obstacleX = random.nextInt(350);
-                score += 10; // Increase score
+            if (obstacle.y > PANEL_HEIGHT) {
+                resetObstacle();
+                score += 10;
             }
 
-            // Collision detection
-            if (new Rectangle(carX, carY, 50, 80).intersects(new Rectangle(obstacleX, obstacleY, 50, 80))) {
+            if (car.intersects(obstacle)) {
                 gameOver = true;
                 timer.stop();
             }
 
-            repaint(); // Refresh screen
+            repaint();
         }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         if (!gameOver) {
-            if (e.getKeyCode() == KeyEvent.VK_LEFT && carX > 110) {
-                carX -= 20; // Move left
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT:
+                    if (car.x > ROAD_X + 10) {
+                        car.x -= MOVE_STEP;
+                    }
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    if (car.x < ROAD_X + ROAD_WIDTH - CAR_WIDTH - 10) {
+                        car.x += MOVE_STEP;
+                    }
+                    break;
             }
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT && carX < 340) {
-                carX += 20; // Move right
-            }
+        } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+            // Restart the game
+            score = 0;
+            car.x = ROAD_X + ROAD_WIDTH / 2 - CAR_WIDTH / 2;
+            resetObstacle();
+            gameOver = false;
+            timer.start();
         }
     }
 
-    
     public void keyReleased(KeyEvent e) {}
-
-    
     public void keyTyped(KeyEvent e) {}
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Car Racing Game");
-        CarRacingGame game = new CarRacingGame();
-        frame.add(game);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Car Racing Game");
+            CarRacingGame game = new CarRacingGame();
+            frame.add(game);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setLocationRelativeTo(null);
+            frame.setVisible(true);
+        });
     }
 }
