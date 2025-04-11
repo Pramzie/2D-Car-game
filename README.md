@@ -1,6 +1,6 @@
 
 
-##🏎️ 2D-Car-Game
+#🏎️ **2D-Car-Game**
 
 A simple car racing game built using **Java Swing**. Dodge obstacles, rack up your score, and test your reflexes!
 
