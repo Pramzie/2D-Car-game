@@ -4,7 +4,7 @@
 
 A simple car racing game built using **Java Swing**. Dodge obstacles, rack up your score, and test your reflexes!
 
-## 📷 Preview
+## 📷 Preview:
 
 > A top-down view arcade-style car racing game where a red car avoids black obstacles falling from the top. The road, lane markers, and score display create an immersive feel.
 
