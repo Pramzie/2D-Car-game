@@ -66,7 +66,7 @@ Everything is implemented in a single class `CarRacingGame`, which extends `JPan
 - Key events
 - Game loop using `Timer`
 
----
+
 
 ## ✅ Features
 
